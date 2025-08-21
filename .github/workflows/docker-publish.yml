@@ -48,8 +48,15 @@ jobs:
         id: thumbor_version
         shell: bash
         run: |
-          VERSION=$(grep '^thumbor==' thumbor/requirements.txt | cut -d= -f3)
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          set -eo pipefail
+          LINE=$(grep -Ei '^thumbor(\[[^]]+\])?==[0-9][^#[:space:]]*' thumbor/requirements.txt | head -n1 || true)
+          if [ -n "$LINE" ]; then
+            VERSION=$(echo "$LINE" | sed -E 's/.*==([^#[:space:]]+).*/\1/')
+          else
+            echo "No explicit thumbor== version found in requirements; defaulting to latest" >&2
+            VERSION=latest
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push ${{ matrix.name }} image
         id: build-and-push

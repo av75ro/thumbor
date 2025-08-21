@@ -21,7 +21,15 @@ jobs:
       - name: get thumbor version
         id: thumbor
         run: |
-          echo "VERSION=$(cat thumbor/requirements.txt| grep thumbor== | cut -d= -f 3)" >> $GITHUB_OUTPUT
+          set -eo pipefail
+          LINE=$(grep -Ei '^thumbor(\[[^]]+\])?==[0-9][^#[:space:]]*' thumbor/requirements.txt | head -n1 || true)
+          if [ -n "$LINE" ]; then
+            VERSION=$(echo "$LINE" | sed -E 's/.*==([^#[:space:]]+).*/\1/')
+          else
+            echo "No explicit thumbor== version found in requirements; defaulting to latest" >&2
+            VERSION=latest
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
       - name: build images and load them for testing
         run: |
           ./build
