@@ -49,6 +49,8 @@ RUN PILLOW_VERSION=$(python -c 'import PIL; print(PIL.__version__)') ; \
     fi ;
 
 COPY docker-entrypoint.sh /
+# Ensure LF endings and executable bit to avoid exec issues
+RUN sed -i 's/\r$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 CMD ["thumbor", "--port=$THUMBOR_PORT", "-l ${LOG_LEVEL:-debug}", "--processes=${THUMBOR_NUM_PROCESSES:-1}"]
